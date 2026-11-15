@@ -1,0 +1,149 @@
+\documentclass{article}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage[margin=1.3in]{geometry}
+
+\newtheorem{proposition}{Proposition}
+\newtheorem{definition}{Definition}
+
+\title{MLB Free-Agency as a Multi-Item Market and the CBA Negotiations}
+\author{Paul Hletko}
+\date{November 2026}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+The MLB collective bargaining agreement (CBA) expires on December 1, 2026. Two issues shape the negotiation: a salary cap (with a possible floor) and league expansion. Both change who can pay for free agents and how much, so each reshapes the free-agent market. This project asks how those rules change player salaries and team welfare, and which structures favor players or owners.
+
+We model MLB free agency as a market in which the 30 organizations bid on multiple distinct goods (players) while trying to maximize their own utility, defined as the dollar value of expected wins minus payroll spent. A team's value for a signing depends on its existing roster: two catcher signings are substitutes, while a star bat and a strong lineup around him can be complements. This makes free agency a combinatorial auction, which we analyze using Walrasian equilibrium and ascending auctions. We discuss bidding strategies and what makes the auction efficient, investigate how potential MLB expansion changes the free-agent auction, and analyze the auction implications of a proposed salary floor/cap.
+
+\section{Background}
+While an understanding of baseball is not required for this project, a few terms are important. Different positions on the field, and different types of pitchers, matter because they determine how much a team values a given player. As a catch-all statistic we use WAR (wins above replacement): a single number that approximates how many more games a team wins because of a player, relative to a replacement-level player. Baseball is also one of the most statistically analyzed sports; interactions are quick, measurable, and largely isolated, and over a 162-game season much of the noise in a player's performance averages out. That said, WAR in a single season is still a noisy measure of true talent, and we treat it as random below.
+
+This project concerns the business side of the sport, specifically the contracts players sign with teams. Major League Baseball (MLB) is the highest professional league in the sport and the oldest major professional sports league in America. There are 30 teams split between two leagues (the American League and National League), each split into three divisions of five teams. The teams play 162 games in the ``regular season,'' after which 12 teams enter the playoffs; the World Series (the final round) usually ends in early November. Players enter MLB through several channels, the main one being the draft, and have limited control over where they play for the first several years. After accumulating six years of major-league service time, a player becomes eligible for ``free agency'': a period when the player is under contract with no team and may sign with any team. (Players can also reach the market earlier, for example by being released or non-tendered; we ignore these cases.)
+
+\section{The Model}
+
+\subsection{Teams, players, and the information structure}
+Let $N = \{1,\dots,30\}$ be the set of teams (buyers) and let $S$ be the set of players entering free agency in a given year, $|S| = m$. Although players are called ``free agents,'' we do not model them as strategic agents; they are the \emph{items} being sold. Each player $j \in S$ has a reserve price $r_j \ge 0$ (the salary of his outside option, e.g.\ the league minimum or an overseas offer); a player signs with a team only if he is paid at least $r_j$. Players will sign with the team that offers them the largest contract that is at least $r_j$.
+
+Let $w_{ij}$ denote the WAR player $j$ produces next season if signed by team $i$, with $w_{ij} \sim D_{ij}$. The distribution may depend on $i$ because of ballpark, defense, and teammates. Teams know all $D_{ij}$ (common knowledge), so we are in a private-values/complete-information setting with no winner's curse. Note that teams are good at estimating $D_{ij}$, but realized WAR can differ substantially from its mean, which is why some signings turn out to be bargains (e.g., Barry Bonds, Rickey Henderson) and others disasters (e.g., Kris Bryant, Jason Heyward)\cite{espn}. Whether a signing was a bargain is measured by comparing the player's salary with the league-average price per win\cite{fangraphs}.
+
+\subsection{Valuations}
+Team $i$ has a roster $R_i$ of players already under contract and a set of roster slots $K$ (for example C, 1B, 2B, 3B, SS, LF, CF, RF, DH, PH/PR, five starting pitchers, and a bullpen). Let $a_{ijk} = \mathbb{E}[w_{ij}]$ if player $j$ is eligible to fill slot $k$ (and $a_{ijk} = 0$ otherwise), where WAR is measured relative to a replacement-level player, so an empty slot is worth $0$. Each player fills at most one slot and each slot holds at most one player. The wins of roster $R$ at team $i$ are the value of the best assignment,
+\[
+A_i(R) = \max_{\mu} \sum_{(j,k)\in\mu} a_{ijk},
+\]
+where $\mu$ ranges over matchings of players in $R$ to slots. This is the formal source of substitutes: a second catcher has no open catcher slot and adds value only through another slot he is eligible for (DH, or a first-base platoon). Team $i$'s value for a set $T \subseteq S$ of signings is the marginal gain
+\[
+v_i(T) = A_i(R_i \cup T) - A_i(R_i), \qquad v_i : 2^S \to \mathbb{R}_{\ge 0},
+\]
+which satisfies $v_i(\emptyset) = 0$ and monotonicity: $P \subseteq Q \Rightarrow v_i(P) \le v_i(Q)$.
+
+Let $C_i > 0$ be the dollar value team $i$ assigns to one expected win (a contender has a larger $C_i$ than a rebuilding team). Team $i$ has quasilinear utility for a set $T$ at prices $p = (p_j)_{j\in S}$:
+\[
+u_i(T,p) = C_i\, v_i(T) - \sum_{j\in T} p_j .
+\]
+
+\paragraph{Remark (what the independence assumption does).} Because we define $v_i$ through \emph{expected} WAR, the independence of the $w_{ij}$ is harmless: it only matters for the variance of outcomes, which risk-neutral teams ignore. The non-additivity of $v_i$ comes from the slot structure, not from correlation in WAR. Correlation and risk aversion are discussed under limitations.
+
+\subsection{Solution concept}
+\begin{definition}
+A \emph{Walrasian equilibrium} is a price vector $p \ge r$ together with an allocation $(T_i)_{i\in N}$ of disjoint sets such that (i) each $T_i$ maximizes $u_i(\cdot, p)$ over all subsets of $S$, and (ii) every unsold player $j \notin \bigcup_i T_i$ has $p_j = r_j$.
+\end{definition}
+
+\noindent Convexity is the relevant condition for divisible goods, not for players, who are indivisible. For indivisible items the key condition is \emph{gross substitutes} (GS): raising the price of some items never causes a team to drop an item whose price did not rise.
+
+\begin{proposition}[Kelso--Crawford 1982; Gul--Stacchetti 1999]
+Assignment valuations of the form $v_i$ above satisfy gross substitutes. Therefore (a) a Walrasian equilibrium exists; (b) the equilibrium allocation maximizes total value $\sum_i C_i v_i(T_i)$ (efficiency); (c) there is a unique minimum Walrasian price vector, which equals the VCG payments, and (d) a simple ascending auction (raise the price of every over-demanded player until demand matches supply) converges to it.
+\end{proposition}
+
+\noindent This is close to Kelso and Crawford's job-matching model, with teams as firms and players as workers. By contrast, if a star hitter's value rises when a strong lineup is around him in a way that cannot be represented by slot-filling (a true complement), GS can fail and a Walrasian equilibrium may not exist. We treat this as a robustness extension rather than the base case. 
+
+\subsection{Payroll Constraints}
+Let $P_i^0$ be the payroll committed to the existing roster $R_i$. A cap $K$ and floor $F$ impose $F \le P_i^0 + \sum_{j\in T} p_j \le K$ on each team. A binding cap is a budget constraint, and budget constraints generally break gross substitutes and can destroy existence of a Walrasian equilibrium. Analyzing how the cap and floor change prices and allocations is the subject of the next section.
+% Requires in the preamble: \usepackage{booktabs} and \usepackage{xurl}  (xurl lets long URLs wrap)
+
+\section{The CBA}
+The Major League Baseball Players Association (MLBPA) and MLB must reach a collective bargaining agreement (CBA) for the games to be played. The current five-year agreement expires on December 1, 2026, and the terms of each CBA are among the largest drivers of change in the sport. Many observers expect the negotiations over the 2027 season to be among the most contentious to date, with a possible lockout that could shorten or even cancel part of the season. % TODO: cite a news source for this claim
+The central issue is the proposed salary floor/cap structure, and the bargaining is complicated by the league's looming expansion. % TODO: cite sources for the cap/floor proposals and the expansion timeline
+
+\subsection{Simulation}
+As a companion to this paper, we built simulations of MLB expansion and of a floor/cap market, available at \url{https://github.com/pqhletko/Free-Agency-Simulations}. The results and discussion below come from these simulations.
+
+The simulations implement the model described above. Each of the 30 teams has 16 roster slots (eight fielding positions, a designated hitter, five starting pitchers, and two relievers), some of which are already filled by incumbents. The free-agent class contains 60 players. A team's value for a set of signings is the gain in the value of its best slot assignment, as defined above, and the market is cleared by an ascending auction in which the price of every over-demanded player rises by a small increment until demand matches supply. For the unconstrained market this is the Kelso--Crawford procedure, and we verified that it matches the efficient allocation and VCG payments: across 10 random markets, welfare was within \$0.06M of optimal, total spending was within 0.2\% of the VCG benchmark, and no team could gain more than \$0.14M by changing its bundle at the final prices.
+
+\paragraph{Important caveat.} All inputs are synthetic: expected WAR, positions, the dollar value of a win (\$8M), reserve prices, incumbent rosters and payrolls are randomly generated placeholders, not real MLB data. The absolute dollar figures below are therefore meaningless. We report them to show the direction and relative size of each effect, and we express most results as percentage changes. Each experiment is run on many random markets, and every comparison is paired: both arms use the same teams and the same free-agent class, so the reported differences are due to the rule change alone. We report the mean difference across markets with its standard error.
+
+\subsection{Expansion}
+In addition to the proposed salary floor and cap, negotiations also revolve around the looming expansion of the league from 30 to 32 teams. To simulate this expansion, we generated 20 random markets. In each, we first computed the equilibrium prices with the 30 incumbent teams, then added two expansion teams and recomputed the prices for the same free-agent class. Each expansion team starts with 11 of its 16 slots open, so it is a large buyer. We varied this assumption (6 and 16 open slots) as a sensitivity check on 10 of the markets. We do not model an expansion draft, which would give the new teams players before free agency begins.
+
+\begin{table}[h]
+\centering\small\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrrrr}
+\toprule
+ & 30 teams & 32 teams & Change & (SE) & \% \\
+\midrule
+Total spending (\$M)           & 1147.0 & 1175.2 & $+28.2$ & (5.7) & $+2.5$ \\
+Mean price, top-10 players (\$M) & 56.9 & 57.7 & $+0.8$ & (0.3) & $+1.4$ \\
+Price per marginal WAR (\$M)   & 8.61 & 8.76 & $+0.16$ & (0.04) & $+1.9$ \\
+Player surplus (\$M)           & 1101.6 & 1129.3 & $+27.7$ & (5.6) & $+2.5$ \\
+Team surplus, all teams (\$M)  & 204.3 & 193.9 & $-10.4$ & (2.8) & $-5.1$ \\
+Team surplus, original 30 (\$M) & 204.3 & 177.4 & $-26.8$ & (5.4) & $-13.1$ \\
+Total welfare (\$M)            & 1305.9 & 1323.2 & $+17.4$ & (4.7) & $+1.3$ \\
+Players signed                 & 56.75 & 57.35 & $+0.60$ & (0.20) & $+1.1$ \\
+\bottomrule
+\end{tabular}
+\caption{Effect of adding two expansion teams (11 of 16 slots open), paired over 20 simulated markets. Surplus is value minus price; player surplus is price minus reserve.}
+\label{tab:expansion}
+\end{table}
+
+Table~\ref{tab:expansion} shows that adding buyers raises prices, as the theory predicts for gross-substitutes valuations. Total spending on the free-agent class rises by about 2.5\% and the price of the top players rises by about 1.4\%. Players capture the gain: player surplus rises by \$27.7M. The original 30 teams are worse off, losing \$26.8M in surplus (13\%), because they pay more for the same players, while the two expansion teams gain about \$16.5M in surplus. Total welfare rises by \$17.4M, mostly because the expansion teams have empty slots that are filled by players the incumbents did not value as highly. The effect scales with how much demand the new teams bring: with 6 open slots spending rises by \$15.0M (SE 3.3) and the original teams lose \$14.8M, and with all 16 slots open spending rises by \$30.7M (SE 6.4) and the original teams lose \$28.8M.
+
+These results suggest that expansion shifts surplus from existing owners to players, and that owners' incentives about the timing and structure of expansion (for example, the size of any expansion draft) interact with the cap negotiation. Since we did not model an expansion draft, the sizes of the effects should not be read as predictions.
+
+\subsection{Salary cap and floor}
+To simulate a cap $K$ and floor $F$, we first computed baseline equilibrium payrolls (existing payroll plus free-agent spending) in each market, and then set $K$ at the 85th percentile and $F$ at the 15th percentile of the baseline payrolls. These are illustrative levels, not proposed CBA values. A team may not sign players whose combined price pushes its payroll above $K$. A team that would end below $F$ must pay the shortfall anyway, so its cost of signing players is $\max(\text{spending}, F - P_i^0)$. We report the shortfall separately, because where those dollars go (to the players, or to the league) is a policy choice that we do not model. We compare four regimes (baseline, cap only, floor only, cap and floor) on 8 random markets.
+
+\begin{table}[h]
+\centering\small\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrrr}
+\toprule
+ & Baseline & Cap & Floor & Cap + floor \\
+ & (level) & \multicolumn{3}{c}{(change vs.\ baseline, SE)} \\
+\midrule
+Total spending (\$M)       & 1144.0 & $-78.3$ (11.7) & $+4.4$ (2.0) & $-74.9$ (11.4) \\
+Mean price, top-10 (\$M)   & 55.3 & $-3.7$ (0.7) & $+0.15$ (0.06) & $-3.6$ (0.8) \\
+Player surplus (\$M)       & 1098.2 & $-77.1$ (11.6) & $+4.6$ (1.9) & $-73.6$ (11.5) \\
+Team surplus (\$M)         & 198.6 & $-2.7$ (7.1) & $-7.0$ (2.3) & $-4.5$ (7.0) \\
+Floor shortfall paid (\$M) & 0 & 0 & $+72.9$ (6.1) & $+60.4$ (6.4) \\
+Total welfare (\$M)        & 1296.8 & $-79.8$ (16.4) & $-2.3$ (1.1) & $-78.1$ (14.5) \\
+Players signed             & 57.25 & $-1.50$ (0.42) & $-0.25$ (0.31) & $-1.62$ (0.50) \\
+Highest payroll (\$M)      & 353.4 & $-116.3$ (25.0) & $+2.4$ (1.9) & $-116.3$ (25.0) \\
+\bottomrule
+\end{tabular}
+\caption{Effect of a cap (85th percentile of baseline payroll) and a floor (15th percentile), paired over 8 simulated markets. Team surplus and welfare exclude the floor shortfall payments, which are a transfer.}
+\label{tab:policy}
+\end{table}
+
+Table~\ref{tab:policy} shows that, in our simulation, the cap is the policy that matters for prices. It lowers total spending by 6.8\%, lowers the price of the top players by 6.7\%, and reduces the highest payroll by more than \$100M. Player surplus falls by \$77.1M, but team surplus does not rise: the change of $-\$2.7$M is essentially zero. In other words, almost everything players lose is lost welfare (a decline of 6.2\%) rather than a transfer to owners. A likely explanation is that the cap binds on the teams that value players most, so players are reallocated to teams with lower values and the efficiency of the allocation falls; we have not isolated this mechanism. Another reasonable explanation is that players may go unsigned as teams cannot afford them, and thus teams select a smaller bundle. The floor has little effect on prices (spending rises by 0.4\%), and the effect on welfare is small. Its main effect is distributional: below-floor teams pay an average of \$72.9M per market in shortfall payments. If those dollars flow to players, the floor is a transfer from low-payroll teams to players, which our accounting does not include in player surplus. Combining the two policies gives results close to the cap alone, with a smaller shortfall (\$60.4M), probably because the lower prices under the cap let low-payroll teams buy more players; we have not verified this.
+
+\paragraph{Caveats.} A binding cap is a budget constraint, so the valuations no longer satisfy gross substitutes, and a Walrasian equilibrium need not exist. In the capped runs, teams frequently released players they had been provisionally holding (about 165 times per market), which is the signature of this failure. The auctions nevertheless ended at approximate equilibria: in the 3 capped markets we checked, no team could gain more than \$0.6M by deviating at the final prices. The demand of a capped team is computed by searching over bundles of at most 5 players from its 8 best candidates, so it is approximate. Finally, the results depend on the cap and floor levels, which we chose illustratively and have not yet varied, and on 8 random markets, which leaves wide standard errors for welfare.
+\section{Limitations}
+We consider contracts of a single year, whereas most contracts span several seasons (introducing aging curves, injury risk, and deferred money), and the luxury tax is computed on average annual value. We assume a player signs with the highest bidder, whereas players also weigh proximity to family, team culture, and chances of winning a championship; we also ignore no-trade clauses and qualifying offers. We model all bids as simultaneous, whereas actual free agency is sequential over several months. Teams are assumed risk neutral and $C_i$ is treated as constant, although marginal wins are worth more near the playoff cutoff. Finally, we assume the $w_{ij}$ are independent and that each player's expected WAR is independent of the rest of the roster beyond slot competition. In reality there are only so many wins to go around, and the situations in which a player accumulates WAR depend on his teammates, so WAR is correlated across players on the same team.
+
+\begin{thebibliography}{9}
+\bibitem{espn} ESPN, ``MLB 2026 free agency: ranking the best and worst free agent signings ever,'' \url{https://www.espn.com/mlb/story/_/id/48370280/mlb-2026-free-agency-ranking-best-worst-free-agent-signings-ever-50th-anniversary}.
+\bibitem{fangraphs} FanGraphs, ``What are teams paying for a win in free agency? 2026 edition,'' \url{https://blogs.fangraphs.com/what-are-teams-paying-for-a-win-in-free-agency-2026-edition/}.
+\bibitem{kc} A. Kelso and V. Crawford, ``Job matching, coalition formation, and gross substitutes,'' \emph{Econometrica} 50(6), 1982.
+\bibitem{gs} F. Gul and E. Stacchetti, ``Walrasian equilibrium with gross substitutes,'' \emph{Journal of Economic Theory} 87, 1999.
+\bibitem{am} L. Ausubel and P. Milgrom, ``The lovely but lonely Vickrey auction,'' in \emph{Combinatorial Auctions}, MIT Press, 2006.
+\bibitem{bo} S. Bikhchandani and J. Ostroy, ``The package assignment model,'' \emph{Journal of Economic Theory} 107, 2002.
+\bibitem{border} K. Border, ``Walrasian equilibrium'' lecture notes, \url{https://healy.econ.ohio-state.edu/kcb/Notes/Walrasian.pdf}.
+\end{thebibliography}
+
+\end{document}
